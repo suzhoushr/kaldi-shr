@@ -1,0 +1,8 @@
+<NnetProto>
+<Convolutional2DComponent> <InputDim> 320 <OutputDim> 1200 <FmapXLen> 5 <FmapYLen> 64 <FiltXLen> 5 <FiltYLen> 5 <FiltXStep> 1 <FiltYStep> 1 <ConnectFmap> 0 <BiasMean> 0.0 <BiasRange> 0.04 <ParamStddev> 0.01
+<ReLU> <InputDim> 1200 <OutputDim> 1200
+<AffineTransform> <InputDim> 1200 <OutputDim> 1024 <BiasMean> 0.0 <BiasRange> 0.04 <ParamStddev> 0.01
+<ReLU> <InputDim> 1024 <OutputDim> 1024
+<AffineTransform> <InputDim> 1024 <OutputDim> 7525 <BiasMean> 0.0 <BiasRange> 0.04 <ParamStddev> 0.01
+<Softmax> <InputDim> 7525 <OutputDim> 7525
+</NnetProto>

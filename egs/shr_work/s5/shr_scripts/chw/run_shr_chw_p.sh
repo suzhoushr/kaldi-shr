@@ -1,0 +1,62 @@
+#!/bin/bash
+######## <NOTE> ########
+# You may successfully run this script under data and feats procudures had been done, 
+######## </NOTE> ########
+. ./cmd.sh ## You'll want to change cmd.sh to something that will work on your system.
+           ## This relates to the queue.
+. ./path.sh
+
+stage=1
+. parse_options.sh
+njobs=7
+feats_dir=data
+dir=exp_chw/shr_test2
+[ -d $dir ] && rm -rf $dir
+mkdir -p $dir
+if [ $stage -le 0 ]; then
+  echo =====================================================================
+  echo "                          Labels Generating                           "
+  echo =====================================================================
+  # Label sequences; simply convert words into their label indices
+  utils/prep_ctc_trans.py data/lang_syllable/lexicon_numbers.txt $feats_dir/train/text \
+    "<UNK>" | gzip -c - > $dir/labels.tr.gz
+  utils/prep_ctc_trans.py data/lang_syllable/lexicon_numbers.txt $feats_dir/test/text \
+    "<UNK>" | gzip -c - > $dir/labels.cv.gz
+fi
+if [ $stage -le 1 ]; then
+  echo =====================================================================
+  echo "                          Model Training                           "
+  echo =====================================================================
+  cp $feats_dir/train/labels.tr.gz $dir/
+  cp $feats_dir/test/labels.cv.gz $dir/
+  cp $feats_dir/train/ce_blk.tr.gz $dir/
+  cp $feats_dir/test/ce_blk.cv.gz $dir/
+  # Train the network with CTC. Refer to the script for details about the arguments
+  $cuda_cmd $dir/log/train_ctc.log \
+    shr_scripts/chw/utils/train_ce_ctc_parallel.sh --add-deltas false --norm-vars false --num-sequence 25 --valid-num-sequence 64 \
+      --learn-rate 0.000008 --report-step 2000 --halving-after-epoch 9 \
+      --copy-feats false --sort-by-len true \
+      --nnet-proto exp_chw/test1.proto \
+      $feats_dir/train $feats_dir/test $dir || exit 1;
+fi
+exit 1
+  echo =====================================================================
+  echo "                             Decoding                              "
+  echo =====================================================================
+if [ $stage -le 2 ]; then
+# decoding
+  steps/decode_ctc_lat.sh --cmd "$decode_cmd" --nj $njobs --beam 18.0 --lattice_beam 10.0 --max-active 5000 --acwt 1.0 \
+    data/lang_syllable_test $feats_dir/test $dir/decode_test_1 || exit 1;
+fi
+
+  # # Specify network structure and generate the network topology
+  # input_feat_dim=44   # dimension of the input features; we will use 40-dimensional fbanks with deltas and double deltas
+  # lstm_layer_num=5     # number of LSTM layers
+  # lstm_cell_dim=320    # number of memory cells in every LSTM layer
+
+  # target_num=`cat data/lang_char/units.txt | wc -l`; target_num=$[$target_num+1]; #  #targets = #labels + 1 (the blank)
+
+  # # Output the network topology
+  # utils/model_topo.py --input-feat-dim $input_feat_dim --lstm-layer-num $lstm_layer_num \
+    # --lstm-cell-dim $lstm_cell_dim --target-num $target_num \
+    # --fgate-bias-init 1.0 > $dir/nnet.proto || exit 1;

@@ -1,0 +1,9 @@
+<NnetProto>
+<AffineTransform> <InputDim> 320 <OutputDim> 512 <BiasMean> 0.0 <BiasRange> 0.04 <ParamStddev> 0.01
+<ReLU> <InputDim> 512 <OutputDim> 512
+<AffineTransform> <InputDim> 512 <OutputDim> 512 <BiasMean> 0.0 <BiasRange> 0.04 <ParamStddev> 0.01
+<ReLU> <InputDim> 512 <OutputDim> 512
+<LstmProjectedStreams> <InputDim> 512 <OutputDim> 512 <CellDim> 512 <ParamScale> 0.040000 <ClipGradient> 5.000000 <LearnRateCoef> 1.0 <BiasLearnRateCoef> 1.0
+<AffineTransform> <InputDim> 512 <OutputDim> 7525 <BiasMean> 0.0 <BiasRange> 0.04 <ParamStddev> 0.01
+<Softmax> <InputDim> 7525 <OutputDim> 7525
+</NnetProto>

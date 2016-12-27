@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Copyright 2012-2014  Brno University of Technology (Author: Karel Vesely)
+# Apache 2.0
+
+# This example script trains a DNN on top of fMLLR features. 
+# The training is done in 3 stages,
+#
+# 1) RBM pre-training:
+#    in this unsupervised stage we train stack of RBMs, 
+#    a good starting point for frame cross-entropy trainig.
+# 2) frame cross-entropy training:
+#    the objective is to classify frames to correct pdfs.
+# 3) sequence-training optimizing sMBR: 
+#    the objective is to emphasize state-sequences with better 
+#    frame accuracy w.r.t. reference alignment.
+
+. ./cmd.sh ## You'll want to change cmd.sh to something that will work on your system.
+           ## This relates to the queue.
+
+. ./path.sh ## Source the tools/utils (import the queue.pl)
+echo "
+Experiment Setting:
+        1. RNN topology structure      SHR test: New ARS
+        2. Activation Function         Default
+    	3. Hyperparameters             char embeding(100 dims) + seg-embeding(300 dims)
+"
+
+#cuda_cmd="run.pl"
+njobs=7
+stage=1 # resume training with --stage=N
+dir=exp_syn_sentence/ssib-char2char
+data_dir=data_ibig_syn_sentence_char2char
+
+mkdir -p $dir
+
+if [ $stage -le 0 ]; then
+echo ============================================================================
+echo "                  Prep Data & Label                          "
+echo ============================================================================
+  #rnnlm_script/fs/prep_data.sh $data_dir
+  shr_scripts/syn_sentence_scripts/prep_data_char2char.sh $data_dir
+fi
+#exit 1
+
+if [ $stage -le 1 ]; then
+echo ============================================================================
+echo "                  The LSTM-RNN Cross-Entropy Training                          "
+echo ============================================================================
+  # Train
+  $cuda_cmd $dir/log/train_lstmp.log \
+    shr_scripts/syn_sentence_scripts/train_lstmp_topo.sh --learn-rate 0.00004 --begin-having 2 \
+       --nnet1-proto exp_syn_sentence/lm1.proto \
+       --nnet2-proto exp_syn_sentence/lm2.proto \
+       $data_dir $dir || exit 1;
+fi
+
+

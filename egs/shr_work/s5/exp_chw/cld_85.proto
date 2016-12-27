@@ -1,0 +1,8 @@
+<NnetProto>
+<Convolutional2DComponent> <InputDim> 512 <OutputDim> 570 <FmapXLen> 8 <FmapYLen> 64 <FiltXLen> 8 <FiltYLen> 8 <FiltXStep> 1 <FiltYStep> 1 <ConnectFmap> 0 <BiasMean> 0.0 <BiasRange> 0.04 <ParamStddev> 0.01
+<ReLU> <InputDim> 570 <OutputDim> 570
+<LstmProjectedStreams> <InputDim> 570 <OutputDim> 512 <CellDim> 300 <ParamScale> 0.040000 <ClipGradient> 5.000000 <LearnRateCoef> 1.0 <BiasLearnRateCoef> 1.0
+<ReLU> <InputDim> 512 <OutputDim> 512
+<AffineTransform> <InputDim> 512 <OutputDim> 3756 <BiasMean> 0.0 <BiasRange> 0.04 <ParamStddev> 0.01
+<Softmax> <InputDim> 3756 <OutputDim> 3756
+</NnetProto>
